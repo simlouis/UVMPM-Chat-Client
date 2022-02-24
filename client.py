@@ -4,19 +4,20 @@ from http import client
 import select
 import sys
 
-global rd, wd, ed
+global r_list, w_list, x_list
 
 
 def connect():
-    host = "132.198.11.12"
-    port = 12000
+    # host = "132.198.11.12"
+    # port = 12000
 
     # create socket
     cl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # host = input("Please enter the server hostname or IPv4 address: ")
-    # port = input("Please enter the server port number: ")
+    host = input("Please enter the server hostname or IPv4 address: ")
+    port = input("Please enter the server port number: ")
 
+    # Try and connect tio socket
     try:
         cl.connect((host, int(port)))
     except Exception as e:
@@ -27,20 +28,22 @@ def connect():
     # Handshake with Server
     shake = "HELLO \n"
     cl.send(shake.encode('utf-8'))
-    # response = cl.recv(1024)
 
+    # Return the socket object
     return cl
 
 
 def server_messages(connection):
-    global rd, wd, ed
     cl = connection
-    arr = [cl]
-    rd, wd, ed = select.select(arr, [], [], 0.5)
 
-    if len(rd) != 0:
+    # Variables for select.select
+    global r_list, w_list, x_list
+    arr = [cl]
+    r_list, w_list, x_list = select.select(arr, [], [], 0.5)
+
+    # Listens for messages from server
+    if len(r_list) != 0:
         message = cl.recv(1024).decode('utf-8')
-        print(message)
         if message == "" or message == "\n":
             pass
         elif message[0:5] == "From:":
@@ -54,13 +57,13 @@ def server_messages(connection):
 
 
 def process(connection):
-    global rd, wd, ed
+    global r_list, w_list, x_list
     cl = connection
     login = False
     arr = [cl]
 
-    rd, wd, ed = select.select(arr, [], [], 0.1)
-    if len(rd) != 0:
+    r_list, w_list, x_list = select.select(arr, [], [], 0.1)
+    if len(r_list) != 0:
         message = cl.recv(1024).decode('utf-8')
         if message == "" or message == "\n":
             pass
@@ -83,7 +86,7 @@ def process(connection):
                     cl.recv(1024)
                     login = True
 
-    if len(rd) != 0 and login:
+    if len(r_list) != 0 and login:
 
         while True:
             print("Choose an Option:")

@@ -25,6 +25,8 @@ def connect():
 
 
 def process(connection):
+
+    # Handshake with Server
     cl = connection
     handshake = "HELLO \n"
     cl.send(handshake.encode('utf-8'))
@@ -48,7 +50,22 @@ def process(connection):
             login = True
 
     e = False
+    #TODO: Maybe get rid of while loop and figure out another way to exit
     while not e:
+        arr = [cl]
+        rd, wd, ed = select.select(arr, [], [], 0.5)
+        if len(rd) != 0:
+            message = cl.recv(1024).decode('utf-8')
+            if message == "" or message == "\n":
+                pass
+            elif message[0:4] == "From":
+                print("Message from {}: {}".format(message.split(":")[1], message.split(":")[2]))
+            elif message[0:6] == "SIGNIN":
+                print("{} signed in".format(message.split(":")[1].rstrip()))
+            elif message[0:7] == "SIGNOFF":
+                print("{} signed out".format(message.split(":")[1].rstrip()))
+            else:
+                print(message)
         print("Choose an Option:")
         print("1. List online users")
         print("2. Send someone a message")
@@ -60,7 +77,7 @@ def process(connection):
             list_command = "LIST \n"
             cl.send(list_command.encode('utf-8'))
             users = (cl.recv(1024))
-            users = users.decode()
+            users = users.decode('utf-8')
             print("Users currently logged in: \n {}".format(users))
 
         elif choice == "2":

@@ -8,9 +8,6 @@ global r_list, w_list, x_list
 
 
 def connect():
-    # host = "132.198.11.12"
-    # port = 12000
-
     # create socket
     cl = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -71,12 +68,16 @@ def process(connection):
             print("Ready for Authentication")
             while not login:
 
+                # Gets user input
                 username = input("Please enter a username: ")
                 password = input("Please enter a password: ")
+
+                # Sends user input to server
                 authen = "AUTH:{}:{} \n".format(username, password)
                 cl.send(authen.encode('utf-8'))
                 message = cl.recv(1024).decode('utf-8')
 
+                # Validates user input
                 if message[0:6] == "AUTHNO":
                     print("Incorrect username and/or password")
                 elif message[0:6] == "UNIQNO":
@@ -89,6 +90,7 @@ def process(connection):
     if len(r_list) != 0 and login:
 
         while True:
+            # Display menu for user
             print("Choose an Option:")
             print("1. List online users")
             print("2. Send someone a message")
@@ -96,11 +98,13 @@ def process(connection):
             e = False
             while not e:
 
+                # Listens for keyboard input
                 temp = select.select([sys.stdin], [], [], 0.5)[0]
                 if temp:
                     sys.stdin.flush()
                     choice = input()
 
+                    # Performs action based on user input
                     if choice == "1":
                         # Lists users online
                         list_command = "LIST \n"
@@ -126,6 +130,7 @@ def process(connection):
                     else:
                         print("Please pick 1, 2, or 3")
 
+                # If no keyboard input check for server messages
                 else:
                     server_messages(cl)
 
